@@ -1,9 +1,7 @@
 import json
 import string
 import pandas as pd
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from torch.utils.data import Dataset, DataLoader
 from pytorch_lightning import LightningDataModule
 
 
@@ -26,21 +24,12 @@ class CustomDataset(Dataset):
 
 
 def collate_batch(batch):
-    tokenizer = AutoTokenizer.from_pretrained("../model/opus-mt-nl-en")
-    model = AutoModelForSeq2SeqLM.from_pretrained("../model/opus-mt-nl-en")
-
-    en_batch = [x['tgt'] for x in batch]
-    en_tgt = tokenizer(en_batch, return_tensors="pt", padding=True).input_ids
-    en_tgt = model.generate(en_tgt, num_beams=5, max_new_tokens=512)
-    en_tgt = tokenizer.batch_decode(en_tgt, skip_special_tokens=True)
-
     source = [x['src'].strip().translate(str.maketrans('', '', string.punctuation)) for x in batch]
     target = [x['tgt'].strip().translate(str.maketrans('', '', string.punctuation))  for x in batch]
-    interim_target = [x.strip().translate(str.maketrans('', '', string.punctuation))  for x in en_tgt]
-    return source, target, interim_target
+    return source, target
 
 
-class STTDataModule(LightningDataModule):
+class STTDataModule2(LightningDataModule):
     def __init__(self, data_dir: str = "../data/common_voice_nl", batch_size: int = 16, num_workers: int = 6) -> None:
         super().__init__()
         self.data_dir = data_dir
